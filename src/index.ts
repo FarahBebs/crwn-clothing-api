@@ -1,33 +1,40 @@
 import express from "express";
-import sequelize from "./models";
-import User from "./models/User";
+import sequelize from "./models/sequelize";
+import "./models";
+import userRoutes from "./routes/userRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+import productRoutes from "./routes/productRoutes";
+import errorHandler from "./middlewares/errorHandler";
+import dotenv from "dotenv";
+import cors from "cors";
+// import { categories, products } from "./seed-data";
+
+dotenv.config(); // Load environment variables from .env file
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+app.use(
+  cors({
+    origin: process.env.appOrigin, // Replace with your React app's URL
+  })
+); // Enable CORS for all routes
 
 // Middleware
 app.use(express.json());
 
 // Routes
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
+app.use(userRoutes);
+app.use(categoryRoutes);
+app.use(productRoutes);
 
-app.post("/users", async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const user = await User.create({ name, email, password });
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to create user" });
-  }
-});
+// Error handling middleware
+app.use(errorHandler);
 
 // Sync Sequelize models and start server
 sequelize
   .authenticate()
-  .then(() => sequelize.sync({ force: true })) // Syncing models, drop the table if exists
+  .then(() => sequelize.sync({ alter: true })) // Sync models, drop the table if exists
   .then(() => {
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
@@ -36,3 +43,7 @@ sequelize
   .catch((error) => {
     console.error("Unable to connect to the database:", error);
   });
+
+// const queryInterface = sequelize.getQueryInterface();
+// queryInterface.bulkInsert("categories", categories);
+// queryInterface.bulkInsert("products", products);

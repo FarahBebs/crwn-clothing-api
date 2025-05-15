@@ -1,12 +1,14 @@
-import { Sequelize } from "sequelize";
+import Category from "./Category";
+import Product from "./Product";
 
-// Set up PostgreSQL connection using Sequelize
-const sequelize = new Sequelize({
-  dialect: "postgres",
-  host: "localhost",
-  username: "your-username", // replace with your PostgreSQL username
-  password: "your-password", // replace with your PostgreSQL password
-  database: "your-database-name", // replace with your database name
+Category.hasMany(Product, {
+  foreignKey: "categoryId",
+  as: "products",
+  onDelete: "RESTRICT",
+  onUpdate: "CASCADE",
 });
 
-export default sequelize;
+Product.belongsTo(Category, {
+  foreignKey: "categoryId",
+  as: "category",
+});
